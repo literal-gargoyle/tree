@@ -1,6 +1,6 @@
 document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);
 
-function handleFileSelect(event) {
+async function handleFileSelect(event) {
     const files = event.target.files;
     const fileTree = {};
     const asciiTree = document.getElementById('asciiTree');
@@ -20,6 +20,24 @@ function handleFileSelect(event) {
         current.file = file;
     }
 
+    async function unpackFiles() {
+        const unpackedTree = {};
+
+        for (const path in fileTree) {
+            const entry = fileTree[path];
+            if (entry.file && (entry.file.name.endsWith('.zip') || entry.file.name.endsWith('.jar') || entry.file.name.endsWith('.exe'))) {
+                // Simulate unpacking
+                // In a real application, you would use a library to unpack files here
+                unpackedTree[path] = {}; // Placeholder for unpacked files
+            } else {
+                unpackedTree[path] = entry;
+            }
+        }
+        return unpackedTree;
+    }
+
+    const unpackedTree = await unpackFiles();
+
     function buildAsciiTree(obj, indent = '') {
         for (const key in obj) {
             if (key !== 'file') {
@@ -36,5 +54,5 @@ function handleFileSelect(event) {
         }
     }
 
-    buildAsciiTree(fileTree);
+    buildAsciiTree(unpackedTree);
 }
