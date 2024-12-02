@@ -12,13 +12,13 @@ fileInput.addEventListener('change', async (event) => {
     const files = unzipSync(new Uint8Array(arrayBuffer));
 
     const tree = buildTree(files);
-    output.innerHTML = `<pre>${treeToAscii(tree, files)}</pre>`;
+    output.innerHTML = treeToHtml(tree, files);
   } else {
     output.textContent = 'Unsupported file format. Only ZIP files are currently supported.';
   }
 });
 
-// Build tree object from file paths
+// Build ASCII tree
 function buildTree(files) {
   const root = {};
   for (const fileName in files) {
@@ -34,25 +34,20 @@ function buildTree(files) {
   return root;
 }
 
-// Convert tree to ASCII with download links
-function treeToAscii(tree, files, path = '', prefix = '') {
+// Convert tree to ASCII with links
+function treeToHtml(tree, files, path = '', prefix = '') {
   let result = '';
   const entries = Object.entries(tree);
 
   entries.forEach(([name, subtree], index) => {
     const isLast = index === entries.length - 1;
-    const linePrefix = prefix + (isLast ? '└── ' : '├── ');
-    const newPrefix = prefix + (isLast ? '    ' : '│   ');
-
-    if (subtree === null) {
-      // File: create download link
-      const fileBlob = new Blob([files[path + name]]);
-      const fileUrl = URL.createObjectURL(fileBlob);
-      result += `${linePrefix}<a href="${fileUrl}" download="${name}" class="file-link">${name}</a>\n`;
-    } else {
-      // Folder: display name
-      result += `${linePrefix}${name}/\n`;
-      result += treeToAscii(subtree, files, path + name + '/', newPrefix);
+    const newPrefix = prefix + (isLast ? '   ' : '│  ');
+    const displayName = subtree === null 
+      ? `<a href="${URL.createObjectURL(new Blob([files[path + name]]))}" class="file-link" download="${name}">${name}</a>`
+      : name;
+    result += `${prefix}${isLast ? '└── ' : '├── '}${displayName}\n`;
+    if (subtree) {
+      result += treeToHtml(subtree, files, path + name + '/', newPrefix);
     }
   });
 
